@@ -1,4 +1,4 @@
-package com.example.imagesearch.api.dto
+package com.example.imagesearch.data
 
 import android.os.Parcelable
 import com.example.imagesearch.Constants
