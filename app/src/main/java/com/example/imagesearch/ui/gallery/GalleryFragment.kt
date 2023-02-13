@@ -11,6 +11,7 @@ import androidx.appcompat.widget.SearchView.OnQueryTextListener
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import com.example.imagesearch.R
 import com.example.imagesearch.databinding.FragmentGalleryBinding
@@ -28,6 +29,12 @@ class GalleryFragment : Fragment(R.layout.fragment_gallery) {
         _binding = FragmentGalleryBinding.bind(view)
 
         val adapter = UnsplashPhotoAdapter()
+
+        adapter.setOnItemClick { unsplashPhoto ->
+            val action =
+                GalleryFragmentDirections.actionGalleryFragmentToDetailsFragment(unsplashPhoto)
+            findNavController().navigate(action)
+        }
 
         binding.apply {
             rvGallery.setHasFixedSize(true)
