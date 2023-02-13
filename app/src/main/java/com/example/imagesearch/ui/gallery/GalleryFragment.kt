@@ -8,8 +8,10 @@ import android.view.MenuInflater
 import android.view.View
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.SearchView.OnQueryTextListener
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.paging.LoadState
 import com.example.imagesearch.R
 import com.example.imagesearch.databinding.FragmentGalleryBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,16 +31,36 @@ class GalleryFragment : Fragment(R.layout.fragment_gallery) {
 
         binding.apply {
             rvGallery.setHasFixedSize(true)
+            rvGallery.itemAnimator = null
             rvGallery.adapter = adapter.withLoadStateHeaderAndFooter(
                 footer = UnsplashPhotoLoadStateAdapter { adapter.retry() },
                 header = UnsplashPhotoLoadStateAdapter { adapter.retry() }
             )
+            btnRetry.setOnClickListener {
+                adapter.retry()
+            }
         }
 
         viewModel.subscribeToState { state ->
             if (!state.isLoading) {
                 state.pagingData?.let {
                     adapter.submitData(viewLifecycleOwner.lifecycle, it)
+                }
+            }
+        }
+
+        adapter.addLoadStateListener { loadState ->
+            binding.apply {
+                pb.isVisible = loadState.source.refresh is LoadState.Loading
+                rvGallery.isVisible = loadState.source.refresh is LoadState.NotLoading
+                btnRetry.isVisible = loadState.source.refresh is LoadState.Error
+                tvError.isVisible = loadState.source.refresh is LoadState.Error
+
+                if (loadState.source.refresh is LoadState.NotLoading && loadState.append.endOfPaginationReached && adapter.itemCount < 1) {
+                    rvGallery.isVisible = false
+                    tvEmpty.isVisible = true
+                } else {
+                    tvEmpty.isVisible = false
                 }
             }
         }
