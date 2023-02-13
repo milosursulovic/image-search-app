@@ -56,13 +56,3 @@ class GalleryViewModel @Inject constructor(private val repository: UnsplashRepos
         getPhotos()
     }
 }
-
-data class PagingDataState(
-    val isLoading: Boolean = false,
-    val pagingData: PagingData<UnsplashPhoto>? = null
-)
-
-sealed class PagingDataEvent {
-    object GetInitialPhotos : PagingDataEvent()
-    data class SearchPhotos(val query: String) : PagingDataEvent()
-}
