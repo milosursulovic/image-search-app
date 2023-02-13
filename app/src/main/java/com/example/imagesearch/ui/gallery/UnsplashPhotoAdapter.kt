@@ -23,6 +23,7 @@ class UnsplashPhotoAdapter :
 
     override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
         val currentItem = getItem(position)
+
         if (currentItem != null) {
             holder.bind(currentItem)
         }

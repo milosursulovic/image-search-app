@@ -21,28 +21,39 @@ class GalleryViewModel @Inject constructor(private val repository: UnsplashRepos
     private val currentQuery = MutableStateFlow(DEFAULT_QUERY)
     private var photos: PagingData<UnsplashPhoto>? = null
     private var state = PagingDataState()
+    private var stateCallback: ((PagingDataState) -> Unit)? = null
 
-    init {
+    fun subscribeToState(stateCallback: (PagingDataState) -> Unit) {
+        this.stateCallback = stateCallback
+    }
+
+    fun triggerEvent(event: PagingDataEvent) {
+        when (event) {
+            is PagingDataEvent.GetInitialPhotos -> getPhotos()
+            is PagingDataEvent.SearchPhotos -> searchPhotos(event.query)
+        }
+    }
+
+    private fun getPhotos() {
         viewModelScope.launch {
-            state = state.copy(isLoading = true)
             currentQuery.collect { query ->
+                state = state.copy(isLoading = true)
+                stateCallback?.let { it(state) }
                 repository.getSearchResults(query).collect { pagingData ->
                     photos = pagingData
                     state = state.copy(
                         isLoading = false,
                         pagingData = photos
                     )
+                    stateCallback?.let { it(state) }
                 }
             }
         }
     }
 
-    fun subscribeToState(callback: (PagingDataState) -> Unit) {
-        callback(state)
-    }
-
-    fun searchPhotos(query: String) {
+    private fun searchPhotos(query: String) {
         currentQuery.value = query
+        getPhotos()
     }
 }
 
@@ -50,3 +61,8 @@ data class PagingDataState(
     val isLoading: Boolean = false,
     val pagingData: PagingData<UnsplashPhoto>? = null
 )
+
+sealed class PagingDataEvent {
+    object GetInitialPhotos : PagingDataEvent()
+    data class SearchPhotos(val query: String) : PagingDataEvent()
+}
